@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron';
+import { BrowserWindow, dialog } from 'electron';
 
 const openDialog = (mainWindow: BrowserWindow) => {
   dialog.showOpenDialog(mainWindow, {

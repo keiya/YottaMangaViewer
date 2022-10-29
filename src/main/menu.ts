@@ -7,6 +7,7 @@ import {
 } from 'electron';
 
 import openDialog from './menu/open-dialog'
+import changeCheckbox from './menu/change-checkbox'
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
@@ -106,6 +107,31 @@ export default class MenuBuilder {
       label: 'View',
       submenu: [
         {
+          label: 'Right-to-Left',
+          type: 'checkbox',
+          checked: true,
+          click: (menuItem: Electron.MenuItem) => {
+            changeCheckbox(this.mainWindow, 'rightToLeft', menuItem.checked)
+          }
+        },
+        {
+          label: 'Two-page spread',
+          type: 'checkbox',
+          checked: true,
+          click: (menuItem: Electron.MenuItem) => {
+            changeCheckbox(this.mainWindow, 'twoPageSpread', menuItem.checked)
+          }
+        },
+        {
+          label: 'First image is cover',
+          type: 'checkbox',
+          checked: false,
+          click: (menuItem: Electron.MenuItem) => {
+            changeCheckbox(this.mainWindow, 'firstImageIsCover', menuItem.checked)
+          }
+        },
+        { type: 'separator' },
+        {
           label: 'Reload',
           accelerator: 'Command+R',
           click: () => {
@@ -202,6 +228,9 @@ export default class MenuBuilder {
           {
             label: '&Open',
             accelerator: 'Ctrl+O',
+            click: () => {
+              openDialog(this.mainWindow)
+            }
           },
           {
             label: '&Close',
