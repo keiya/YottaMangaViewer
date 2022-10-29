@@ -6,6 +6,8 @@ import {
   MenuItemConstructorOptions,
 } from 'electron';
 
+import openDialog from './menu/open-dialog'
+
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
   submenu?: DarwinMenuItemConstructorOptions[] | Menu;
@@ -84,19 +86,19 @@ export default class MenuBuilder {
         },
       ],
     };
-    const subMenuEdit: DarwinMenuItemConstructorOptions = {
-      label: 'Edit',
+    const subMenuFile: DarwinMenuItemConstructorOptions = {
+      label: 'File',
       submenu: [
-        { label: 'Undo', accelerator: 'Command+Z', selector: 'undo:' },
-        { label: 'Redo', accelerator: 'Shift+Command+Z', selector: 'redo:' },
+        { label: 'Open', accelerator: 'Command+O', selector: 'open:',
+          click: () => {
+            openDialog(this.mainWindow)
+          }
+        },
         { type: 'separator' },
-        { label: 'Cut', accelerator: 'Command+X', selector: 'cut:' },
-        { label: 'Copy', accelerator: 'Command+C', selector: 'copy:' },
-        { label: 'Paste', accelerator: 'Command+V', selector: 'paste:' },
-        {
-          label: 'Select All',
-          accelerator: 'Command+A',
-          selector: 'selectAll:',
+        { label: 'Close', accelerator: 'Command+W', selector: 'close:',
+          click: () => {
+            this.mainWindow.close();
+          },
         },
       ],
     };
@@ -189,7 +191,7 @@ export default class MenuBuilder {
         ? subMenuViewDev
         : subMenuViewProd;
 
-    return [subMenuAbout, subMenuEdit, subMenuView, subMenuWindow, subMenuHelp];
+    return [subMenuAbout, subMenuFile, subMenuView, subMenuWindow, subMenuHelp];
   }
 
   buildDefaultTemplate() {
