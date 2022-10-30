@@ -100,19 +100,15 @@ const Viewer = () => {
   }
   
   const loadImages = async (files: string[], idx:number, limit: number) => {
+    let imgrefMap = [0, 1, 2, 3]
+    if (menuCheckboxes.rightToLeft) {
+      imgrefMap = [1, 0, 3, 2]
+    }
+    const imgRefMod = menuCheckboxes.twoPageSpread ? 4 : 2;
     for (let i=0; i < limit && i < files.length; i++) {
-      loadImage(files[i+idx], imgrefs[(i+idx)%4].current)
+      loadImage(files[i+idx], imgrefs[imgrefMap[(i+idx)%imgRefMod]].current)
     }
   }
-
-  // const loadImages = async (files: string[], idx:number, limit: number) => {
-  //   if (viewingIndex%4==0) { // 0/1=active, 2/3=standby
-  //     loadImage(files[idx], imgrefs[2].current)
-  //     loadImage(files[idx+1], imgrefs[3].current)
-  //   } else { // 0/1=standby, 2/3=active
-
-  //   }
-  // }
 
   useEffect(() => {
     console.log('viewingindex changed', viewingIndex, files[viewingIndex])
@@ -243,12 +239,12 @@ const Viewer = () => {
          className={menuCheckboxes.twoPageSpread ? 'twopage' : ''}
     >
         <div className="imgcontainer" onClick={() => handleImageClickEvent('left')}>
-          <img ref={imgrefs[0]} className={`img img-${viewingIndex%4==0?'current':'standby'}`}></img>
-          <img ref={imgrefs[2]} className={`img img-${viewingIndex%4!=0?'current':'standby'}`}></img>
+          <img ref={imgrefs[0]} className={`img left img-${viewingIndex%4==0?'current':'standby'}`}></img>
+          <img ref={imgrefs[2]} className={`img left img-${viewingIndex%4!=0?'current':'standby'}`}></img>
         </div>
         <div className="imgcontainer" onClick={() => handleImageClickEvent('right')}>
-          <img ref={imgrefs[1]} className={`img img-${viewingIndex%4==0?'current':'standby'}`}></img>
-          <img ref={imgrefs[3]} className={`img img-${viewingIndex%4!=0?'current':'standby'}`}></img>
+          <img ref={imgrefs[1]} className={`img right img-${viewingIndex%4==0?'current':'standby'}`}></img>
+          <img ref={imgrefs[3]} className={`img right img-${viewingIndex%4!=0?'current':'standby'}`}></img>
         </div>
     </div>
   );
