@@ -12,10 +12,6 @@ interface MenuCheckboxes {
   twoPageSpread: boolean;
   firstImageIsCover: boolean;
 }
-const maxLookAheadNum = 4
-
-const cb = new CircularBufferedImage(maxLookAheadNum);
-
 
 const Viewer = () => {
   const [openPath, setOpenPath] = useState<string>();
@@ -27,11 +23,13 @@ const Viewer = () => {
 
   const [files, setFiles] = useState<string[]>([]);
   const [viewingIndex, setViewingIndex] = useState<number>(-1);
+  const [imageRefs, setImageRefs] = useState<any[]>([]);
 
   const ref = useRef(null);
-  const imglref = useRef(null);
-  const imgrref = useRef(null);
-
+  const imgrefs = Array(4)
+  for (let i=0; i<4; i++) {
+    imgrefs[i] = useRef(null);
+  }
 
   useEffect(() => {
     const listImages = async () => {
@@ -80,38 +78,46 @@ const Viewer = () => {
         }
       }
       setFiles(files)
-      cb.clear()
-      await loadImages(files, startIdx, maxLookAheadNum)
+      await loadImages(files, startIdx, 4)
       setViewingIndex(startIdx)
     };
     listImages();
   }, [openPath]);
-  
-  const loadImages = async (files: string[], idx:number, lookAheadNum: number) => {
-    console.log('loadImages', idx, lookAheadNum)
-    const promises: Promise<Buffer>[] = []
-    for (let i=idx; i < idx+lookAheadNum && i < files.length; i++) {
-      const promiseRead = fs.promises.readFile(files[i])
-      promises.push(promiseRead)
-    }
 
-    return Promise.allSettled(promises).then((results) => {
-      results.forEach((result) => {
-        if (result.status == 'rejected') { return; }
-        cb.put(result.value)
-      })
-    })
+  const loadImage = async (filePath: string, elem: HTMLImageElement) => {
+    const buf = await fs.promises.readFile(filePath);
+    const url = URL.createObjectURL(new Blob( [ buf ] ));
+    elem.src = url;
+    return elem.decode().finally(() => URL.revokeObjectURL( url )).catch(e => {
+      console.error(e)
+    });
   }
+
+  const cleanImages = () => {
+    for (let i=0; i < 4; i++) {
+      imgrefs[i].current.src = null
+    }
+  }
+  
+  const loadImages = async (files: string[], idx:number, limit: number) => {
+    for (let i=0; i < limit && i < files.length; i++) {
+      loadImage(files[i+idx], imgrefs[(i+idx)%4].current)
+    }
+  }
+
+  // const loadImages = async (files: string[], idx:number, limit: number) => {
+  //   if (viewingIndex%4==0) { // 0/1=active, 2/3=standby
+  //     loadImage(files[idx], imgrefs[2].current)
+  //     loadImage(files[idx+1], imgrefs[3].current)
+  //   } else { // 0/1=standby, 2/3=active
+
+  //   }
+  // }
 
   useEffect(() => {
     console.log('viewingindex changed', viewingIndex, files[viewingIndex])
     if (!files[viewingIndex]) return;
     const showImage = async () => {
-      const imgrefs: (HTMLImageElement | null)[] = [imglref.current, imgrref.current].reverse();
-      for (const imgref of imgrefs) {
-        if (!imgref) continue;
-        cb.showImage(imgref)
-      }
     };
     showImage();
   }, [viewingIndex]);
@@ -135,27 +141,26 @@ const Viewer = () => {
       const nextViewingIndex = viewingIndex + incr
       setViewingIndex(nextViewingIndex)
       await loadImages(files, nextViewingIndex + 2, 2)
+
     }
   };
   const prevImage = async () => {
     const decr = menuCheckboxes.twoPageSpread ? 2 : 1
     if (viewingIndex - decr >= 0) {
       const nextViewingIndex = viewingIndex - decr
-      cb.clear()
-      await loadImages(files, nextViewingIndex, maxLookAheadNum)
+      cleanImages()
+      await loadImages(files, nextViewingIndex, 4)
       setViewingIndex(nextViewingIndex)
     }
   };
   const firstImage = async () => {
     if (viewingIndex == 0) return;
-    cb.clear()
-    await loadImages(files, 0, maxLookAheadNum)
+    await loadImages(files, 0, 4)
     setViewingIndex(0)
   };
   const lastImage = async () => {
     const nextViewingIndex = files.length - 1
     if (viewingIndex == nextViewingIndex) return;
-    cb.clear()
     await loadImages(files, nextViewingIndex, 1)
     setViewingIndex(nextViewingIndex)
   };
@@ -238,10 +243,12 @@ const Viewer = () => {
          className={menuCheckboxes.twoPageSpread ? 'twopage' : ''}
     >
         <div className="imgcontainer" onClick={() => handleImageClickEvent('left')}>
-          <img ref={imglref} className="img"></img>
+          <img ref={imgrefs[0]} className={`img img-${viewingIndex%4==0?'current':'standby'}`}></img>
+          <img ref={imgrefs[2]} className={`img img-${viewingIndex%4!=0?'current':'standby'}`}></img>
         </div>
         <div className="imgcontainer" onClick={() => handleImageClickEvent('right')}>
-          <img ref={imgrref} className="img"></img>
+          <img ref={imgrefs[1]} className={`img img-${viewingIndex%4==0?'current':'standby'}`}></img>
+          <img ref={imgrefs[3]} className={`img img-${viewingIndex%4!=0?'current':'standby'}`}></img>
         </div>
     </div>
   );
