@@ -2,10 +2,7 @@ import * as fs from 'fs';
 import { useEffect, useState, KeyboardEvent, useRef } from 'react';
 import { ipcRenderer } from 'electron';
 import './Viewer.css';
-import CircularBufferedImage from '../libs/circular-buffered-image'
-
 import path from 'path'
-import { start } from 'repl';
 
 interface MenuCheckboxes {
   rightToLeft: boolean;
@@ -23,7 +20,6 @@ const Viewer = () => {
 
   const [files, setFiles] = useState<string[]>([]);
   const [viewingIndex, setViewingIndex] = useState<number>(-1);
-  const [imageRefs, setImageRefs] = useState<any[]>([]);
 
   const ref = useRef(null);
   const imgrefs = Array(4)
@@ -106,7 +102,9 @@ const Viewer = () => {
     }
     const imgRefMod = menuCheckboxes.twoPageSpread ? 4 : 2;
     for (let i=0; i < limit && i < files.length; i++) {
-      loadImage(files[i+idx], imgrefs[imgrefMap[(i+idx)%imgRefMod]].current)
+      loadImage(files[i+idx], imgrefs[imgrefMap[(i+idx)%imgRefMod]].current).catch((e) => {
+        console.error(e)
+      })
     }
   }
 
