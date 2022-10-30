@@ -13,7 +13,7 @@ export default class CircularBufferedImage {
     const url = URL.createObjectURL(new Blob( [ item ] ));
     this.buf[this.end++] = url;
     this.end %= this.bufsize;
-    console.log('CB-PUT:', this.start, this.end, url)
+    //console.debug('CB-PUT:', this.start, this.end, url)
   }
 
   public showImage(imgref: HTMLImageElement) {
@@ -21,7 +21,7 @@ export default class CircularBufferedImage {
     this.start %= this.bufsize;
     imgref.src = url;
     imgref.onload = e => URL.revokeObjectURL( url );
-    console.log('CB-GET:', this.start, this.end, url)
+    //console.debug('CB-GET:', this.start, this.end, url)
   }
 
   public clear() {

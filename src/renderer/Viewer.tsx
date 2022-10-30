@@ -81,7 +81,7 @@ const Viewer = () => {
       }
       setFiles(files)
       cb.clear()
-      await loadImages(files, startIdx, 4)
+      await loadImages(files, startIdx, maxLookAheadNum)
       setViewingIndex(startIdx)
     };
     listImages();
@@ -106,13 +106,8 @@ const Viewer = () => {
   useEffect(() => {
     console.log('viewingindex changed', viewingIndex, files[viewingIndex])
     if (!files[viewingIndex]) return;
-    //loadImages(viewingIndex);
     const showImage = async () => {
-      // const fileBuf = await fs.promises.readFile(files[viewingIndex])
-      // const blob = new Blob( [ fileBuf ] );
-      
-      console.log('LOADIMAGES!')
-      const imgrefs: (HTMLImageElement | null)[] = [imglref.current, imgrref.current];
+      const imgrefs: (HTMLImageElement | null)[] = [imglref.current, imgrref.current].reverse();
       for (const imgref of imgrefs) {
         if (!imgref) continue;
         cb.showImage(imgref)
@@ -147,17 +142,22 @@ const Viewer = () => {
     if (viewingIndex - decr >= 0) {
       const nextViewingIndex = viewingIndex - decr
       cb.clear()
-      await loadImages(files, nextViewingIndex, 4)
+      await loadImages(files, nextViewingIndex, maxLookAheadNum)
       setViewingIndex(nextViewingIndex)
     }
   };
   const firstImage = async () => {
+    if (viewingIndex == 0) return;
     cb.clear()
-    await loadImages(files, 0, 4)
+    await loadImages(files, 0, maxLookAheadNum)
     setViewingIndex(0)
   };
-  const lastImage = () => {
-    setViewingIndex(files.length - 1)
+  const lastImage = async () => {
+    const nextViewingIndex = files.length - 1
+    if (viewingIndex == nextViewingIndex) return;
+    cb.clear()
+    await loadImages(files, nextViewingIndex, 1)
+    setViewingIndex(nextViewingIndex)
   };
 
   const handleKeyboardEvent = (e: KeyboardEvent) => {
