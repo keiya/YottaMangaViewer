@@ -47,7 +47,15 @@ const Viewer = () => {
       for (const dirent of dirents) {
         if (dirent.isFile()) {
           if (lstat.isFile() && dirent.name === path.basename(openPath)) {
-            startIdx = idx;
+            if (menuCheckboxes.twoPageSpread) { // 2ページ表示
+              if (idx % 2 !== 0) { // 2ページ表示かつ 偶数ページ(奇数インデックス) の場合
+                startIdx = idx - 1;
+              } else {
+                startIdx = idx;
+              }
+            } else {
+              startIdx = idx;
+            }
           }
           const extension = dirent.name.split(".").pop()?.toLowerCase();
           switch (extension) {
