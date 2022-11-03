@@ -47,15 +47,7 @@ const Viewer = () => {
       for (const dirent of dirents) {
         if (dirent.isFile()) {
           if (lstat.isFile() && dirent.name === path.basename(openPath)) {
-            if (menuCheckboxes.twoPageSpread) { // 2ページ表示
-              if (idx % 2 !== 0) { // 2ページ表示かつ 偶数ページ(奇数インデックス) の場合
-                startIdx = idx - 1;
-              } else {
-                startIdx = idx;
-              }
-            } else {
-              startIdx = idx;
-            }
+            startIdx = calcSpecificPage(idx)
           }
           const extension = dirent.name.split(".").pop()?.toLowerCase();
           switch (extension) {
@@ -116,13 +108,12 @@ const Viewer = () => {
     }
   }
 
-  useEffect(() => {
-    console.log('viewingindex changed', viewingIndex, files[viewingIndex])
-    if (!files[viewingIndex]) return;
-    const showImage = async () => {
-    };
-    showImage();
-  }, [viewingIndex]);
+  // useEffect(() => {
+  //   if (!files[viewingIndex]) return;
+  //   const showImage = async () => {
+  //   };
+  //   showImage();
+  // }, [viewingIndex]);
 
   useEffect(() => {
     if (ref?.current) {
@@ -160,8 +151,17 @@ const Viewer = () => {
     await loadImages(files, 0, 4)
     setViewingIndex(0)
   };
+  const calcSpecificPage = (page: number): number => {
+    let startIdx = page;
+    if (menuCheckboxes.twoPageSpread) { // 2ページ表示
+      if (page % 2 !== 0) { // 2ページ表示かつ 偶数ページ(奇数インデックス) の場合
+        startIdx = page - 1;
+      }
+    }
+    return startIdx
+  };
   const lastImage = async () => {
-    const nextViewingIndex = files.length - 1
+    const nextViewingIndex = calcSpecificPage(files.length - 1)
     if (viewingIndex == nextViewingIndex) return;
     await loadImages(files, nextViewingIndex, 1)
     setViewingIndex(nextViewingIndex)
